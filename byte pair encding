@@ -1,0 +1,122 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "provenance": [],
+      "authorship_tag": "ABX9TyOXXRk2ElBvpyDAznr4pnK/",
+      "include_colab_link": true
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    },
+    "language_info": {
+      "name": "python"
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "view-in-github",
+        "colab_type": "text"
+      },
+      "source": [
+        "<a href=\"https://colab.research.google.com/github/Meghana87z/FlickStream/blob/main/byte%20pair%20encding\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": 1,
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "Mg7k0RezXYDs",
+        "outputId": "a290734d-df49-4e6e-fba5-821617c90900"
+      },
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Merge 1: ('l', 'o')\n",
+            "Merge 2: ('lo', 'w')\n",
+            "Merge 3: ('e', 'r')\n",
+            "Merge 4: ('er', '</w>')\n",
+            "Merge 5: ('low', '</w>')\n",
+            "Merge 6: ('low', 'e')\n",
+            "Merge 7: ('lowe', 's')\n",
+            "Merge 8: ('lowes', 't')\n",
+            "Merge 9: ('lowest', '</w>')\n",
+            "Merge 10: ('n', 'e')\n",
+            "\n",
+            "Final Vocabulary:\n",
+            "low</w> : 1\n",
+            "lowest</w> : 1\n",
+            "ne w er</w> : 1\n",
+            "w i d er</w> : 1\n"
+          ]
+        }
+      ],
+      "source": [
+        "from collections import Counter, defaultdict\n",
+        "\n",
+        "def get_stats(vocab):\n",
+        "    \"\"\"Count frequency of symbol pairs\"\"\"\n",
+        "    pairs = Counter()\n",
+        "    for word, freq in vocab.items():\n",
+        "        symbols = word.split()\n",
+        "        for i in range(len(symbols) - 1):\n",
+        "            pairs[(symbols[i], symbols[i+1])] += freq\n",
+        "    return pairs\n",
+        "\n",
+        "\n",
+        "def merge_vocab(pair, vocab):\n",
+        "    \"\"\"Merge the most frequent pair in vocabulary\"\"\"\n",
+        "    new_vocab = {}\n",
+        "    bigram = \" \".join(pair)\n",
+        "    replacement = \"\".join(pair)\n",
+        "\n",
+        "    for word in vocab:\n",
+        "        new_word = word.replace(bigram, replacement)\n",
+        "        new_vocab[new_word] = vocab[word]\n",
+        "\n",
+        "    return new_vocab\n",
+        "\n",
+        "\n",
+        "def byte_pair_encoding(corpus, num_merges=10):\n",
+        "    # Build initial vocabulary\n",
+        "    vocab = defaultdict(int)\n",
+        "    for word in corpus:\n",
+        "        vocab[\" \".join(list(word)) + \" </w>\"] += 1\n",
+        "\n",
+        "    merges = []\n",
+        "\n",
+        "    for i in range(num_merges):\n",
+        "        pairs = get_stats(vocab)\n",
+        "        if not pairs:\n",
+        "            break\n",
+        "\n",
+        "        best = max(pairs, key=pairs.get)\n",
+        "        vocab = merge_vocab(best, vocab)\n",
+        "        merges.append(best)\n",
+        "\n",
+        "        print(f\"Merge {i+1}: {best}\")\n",
+        "\n",
+        "    return merges, vocab\n",
+        "\n",
+        "\n",
+        "# Example corpus\n",
+        "corpus = [\"low\", \"lowest\", \"newer\", \"wider\"]\n",
+        "\n",
+        "merges, final_vocab = byte_pair_encoding(corpus, num_merges=10)\n",
+        "\n",
+        "print(\"\\nFinal Vocabulary:\")\n",
+        "for k, v in final_vocab.items():\n",
+        "    print(k, \":\", v)"
+      ]
+    }
+  ]
+}
